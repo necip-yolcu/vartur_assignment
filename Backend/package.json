@@ -1,0 +1,36 @@
+{
+  "name": "vartur_assignment",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "nodemon index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/cors": "^8.3.0",
+    "@fastify/multipart": "^7.7.3",
+    "@fastify/static": "^6.11.0",
+    "@prisma/client": "^5.2.0",
+    "fastify": "^4.22.1",
+    "fastify-cors": "^6.1.0",
+    "fastify-multer": "^2.0.3",
+    "fs-extra": "^11.1.1",
+    "multer": "^1.4.5-lts.1",
+    "nodemon": "^3.0.1",
+    "sharp": "^0.32.5",
+    "vue": "^3.3.4"
+  },
+  "devDependencies": {
+    "@types/fastify-cors": "^2.1.0",
+    "@types/fs-extra": "^11.0.1",
+    "@types/multer": "^1.4.7",
+    "@types/node": "^20.5.7",
+    "prisma": "^5.2.0",
+    "typescript": "^5.2.2"
+  }
+}
