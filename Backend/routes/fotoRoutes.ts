@@ -1,11 +1,12 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import {
-  addPhoto,
+  resizePhoto,
   getPhotos,
   deletePhoto,
   deleteFolder
 } from '../controllers/fotoController';
 import fieldsUpload from '../controllers/upload';
+import sharp from 'sharp';
 
 
 const fotoRoutes = (fastify: FastifyInstance, options: any, done: () => void) => {
@@ -14,7 +15,15 @@ const fotoRoutes = (fastify: FastifyInstance, options: any, done: () => void) =>
     (
       '/addFoto/:TYPE/:photoID',
       { preHandler: fieldsUpload },
-      addPhoto
+      resizePhoto
+    );
+
+  // Update a foto
+  fastify.post<{ Params: { TYPE: string; photoID: number } }>
+    (
+      '/updateFoto/:TYPE/:photoID',
+      { preHandler: fieldsUpload },
+      resizePhoto
     );
 
   // Get fotos

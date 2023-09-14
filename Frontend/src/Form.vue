@@ -25,16 +25,14 @@
 
                     <div class="mb-3">
                         <label for="picture" class="form-label">Picture:</label>
-                        <div class="form-group">
-                            <!--input type="file" accept="image/*" name="photo_sending_name" id="picture" class="form-control-file" @change="handleFileInput"-->
-                            <input type="file" class="form-control-file" name="uploaded_file" @change="handleFileInput">
-                            <!--input name="image" id="image" accept="image/*" @change="handleFileInput"-->
-                            <label class="input-group-text" for="picture">Choose File</label>
+                        <!-- <div class="form-group">
+                            <input type="file" class="form-control" name="uploaded_file" @change="handleFileInput"
+                                accept="image/*" ref="fileInput">
+                        </div> -->
+                        <div class="image-input">
+                            <img :src="imagePreview" :alt="product.picture" height="50" />
+                            <input type="file" class="form-control" @change="handleFileInput">
                         </div>
-                        <!--div v-if="product.pictureSrc" class="mt-2">
-                            <img :src="product.pictureSrc" alt="Selected Image" class="img-thumbnail"
-                                style="max-width: 100px;">
-                        </div-->
                     </div>
 
                     <div class="d-flex justify-content-between">
@@ -75,13 +73,14 @@ const product = ref({
     category_id: '',
     name: '',
     picture: null,
-    pictureSrc: '',
     created_at: '',
 });
 
+const formData = ref(new FormData())
+const fileInput = ref(null);
+
 const categories = ref();
 const categorywithParent = ref([]);
-const updatedCategoryId = ref(null);
 
 
 onMounted(async () => {
@@ -103,20 +102,25 @@ const updateProductFromQuery = () => {
         category_id: parseInt(router.currentRoute.value.query.category_id?.toString()),
         name: router.currentRoute.value.query.name,
         picture: router.currentRoute.value.query.picture,
-        pictureSrc: router.currentRoute.value.query.picture,
         created_at: router.currentRoute.value.query.createdAt,
     };
 };
 
+const imagePreview = ref(router.currentRoute.value.query.picture
+    ? `${apiURL}/foto/uploads/product/${parseInt(router.currentRoute.value.query.id?.toString())}/${router.currentRoute.value.query.picture}`
+    : null
+)
+
+
 const handleSelectedCategoryChanged = (selectedCategoryId) => {
-    updatedCategoryId.value = selectedCategoryId;
+    product.value.category_id = selectedCategoryId;
 }
 
 const submitForm = () => {
     if (formSubmitButtonText.value === 'Add') {
-        addProduct(updatedCategoryId.value);
+        addProduct(product.value.category_id);
     } else {
-        updateProduct(updatedCategoryId.value);
+        updateProduct(product.value.category_id);
     }
 };
 
@@ -141,14 +145,31 @@ const getParentIDs = () => {
         });
 }
 
-const addProduct = (updatedCategoryId) => {
+const handleFileInput = async (event) => {
+    const file = event.target.files[0];
+    console.log("photo_file: ", file)
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imagePreview.value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+
+        product.value.picture = file.name
+        formData.value.append('uploaded_file', file)
+    }
+};
+
+const addProduct = (selectedCategoryId) => {
     axios
         .post(`${apiURL}/products`, {
-            category_id: parseInt(updatedCategoryId),
+            category_id: parseInt(selectedCategoryId),
             name: product.value.name,
-            picture: product.value?.pictureSrc,
+            picture: product.value?.picture,
         })
-        .then((res) => {
+        .then(async (res) => {
+            await fotoUpload({ todo: "addFoto", TYPE: 'product', id: res.data.id })
             console.log('Product added:', res.data);
             resetForm();
         })
@@ -162,92 +183,39 @@ const updateProduct = (updatedCategoryId) => {
         .put(`${apiURL}/products/${product.value.id}`, {
             category_id: parseInt(updatedCategoryId),
             name: product.value.name,
-            picture: product.value.pictureSrc,
+            picture: product.value.picture,
         })
-        .then((res) => {
+        .then(async (res) => {
+            await fotoUpload({ todo: "updateFoto", TYPE: 'product', id: product.value.id })
             console.log('Product updated:', res.data);
-            resetForm();
+            resetForm()
         })
         .catch((err) => {
             console.error('Error updating product:', err);
         });
 };
 
+const fotoUpload = async ({ todo, TYPE, id }) => {
+    await axios
+        .post(`${apiURL}/foto/${todo}/${TYPE}/${id}`, formData.value,
+            { headers: { 'Content-Type': 'multipart/form-data', } }
+        )
+        .then(res => console.log("photo_send SUCCESS: ", res))
+        .catch(err => {
+            console.log("photo_send ERROR: ", err)
+        })
+}
+
 const resetForm = () => {
     product.value = {
         category_id: '',
         name: '',
         picture: null,
-        pictureSrc: '',
         created_at: '',
     };
     router.push({
         path: '/'
     });
-};
-
-const handleFileInput = async (event) => {
-    const file = event.target.files[0];
-    console.log("photo_file: ", file)
-
-    let data = new FormData()
-    await data.append('uploaded_file', file)
-    console.log("photo_formData_after_append", data)
-
-    const TYPE = 'product'
-    const photoID = 1
-
-    await axios
-        .post(`${apiURL}/foto/addFoto/${TYPE}/1`, data,
-            {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    //'Accept': 'application/json',
-                }
-            }
-        )
-        .then(res => console.log("photo_send SUCCESS: ", res))
-        .catch(err => {
-            console.log("photo_formData_after_error", data)
-
-            console.log("photo_send ERROR: ", err)
-        })
-
-    //product.value.picture = file;
-    //console.log('file', file);
-
-    /*const reader = new FileReader();
-    reader.onload = async () => {
-        //product.value.pictureSrc = reader.result;
-        //if (file) {
-        let data = new FormData()
-        await data.append('uploaded_file', reader.result)
-        console.log("photo_formData_after_append", data)
-
-        const TYPE = 'product'
-        const photoID = 1
-
-        await axios
-            .post(`${apiURL}/foto/addFoto/${TYPE}/1`, data,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        //'Content-Type': 'application/json',
-                    }
-                }
-            )
-            .then(res => console.log("photo_send SUCCESS: ", res))
-            .catch(err => {
-                console.log("photo_formData_after_error", data)
-
-                console.log("photo_send ERROR: ", err)
-            })
-        //}
-    };
-    reader.readAsDataURL(file);*/
-
-
-
 };
 
 
@@ -275,6 +243,35 @@ watch(() => router.currentRoute.value.query, () => {
 .link-button {
     text-decoration: none;
     color: white;
+}
+
+.image-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* Adjust the gap between the image and input as needed */
+}
+
+/* Style the file input button to match the Bootstrap style */
+.input[type="file"] {
+    border: 1px solid #ced4da;
+    padding: 6px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    background-color: white;
+    color: #495057;
+}
+
+/* Hide the default file input appearance */
+.input[type="file"] {
+    display: none;
+}
+
+/* Style the selected file name */
+.image-input p {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #6c757d;
 }
 </style>
   

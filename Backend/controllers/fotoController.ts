@@ -9,30 +9,47 @@ import fastifyMultipart from '@fastify/multipart'
 
 // PHOTO CONTROLLER
 
-// Upload a photo to the server (to the 'uploads' folder)
-// 1-else error handling
-// 2-path exist controller
-export const addPhoto = async (req: FastifyRequest<{ Params: { photoID: number, TYPE: string } }>, res: FastifyReply) => {
-  //res.send("Photo uploaded successfully");
-}
-
 // Get photos from the server
 export const getPhotos = async (req: FastifyRequest<{ Params: { photoID: number, TYPE: string, photoName: string } }>, res: FastifyReply) => {
-  console.log("photo_backend_HELLO GET")
-
   const type = req.params.TYPE;
   const photoId = req.params.photoID;
   const photoName = req.params.photoName;
 
   try {
-    const filePath = path.join(__dirname, `./uploads/${type}/${photoId}/${photoName}`);
+    const filePath = path.join(__dirname, `../uploads/${type}/${photoId}/${photoName}`);
     const fileStream = fs.createReadStream(filePath);
 
-    res.send(fileStream);
+    return res.send(fileStream);
   } catch (error) {
     return res.send('Failed to retrieve the photo');
   }
 };
+
+export const resizePhoto = async (req: FastifyRequest<{ Params: { photoID: number, TYPE: string } }>, res: FastifyReply) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send({ message: 'No file uploaded.' });
+    }
+
+    // Get the file's path
+    const filePath = (req.file as any).path;
+
+    // Resize the uploaded image to your desired dimensions
+    const resizedImageBuffer = await sharp(filePath)
+      .resize(3200, 3200) // Resize to 3200x3200 pixels
+      .toBuffer();
+
+    console.log("resizedImageBuffer",resizedImageBuffer)
+
+    // Overwrite the original image with the resized version
+    await sharp(resizedImageBuffer).toFile(filePath);
+
+    res.code(200).send('Image uploaded and resized successfully.');
+  } catch (error) {
+    console.error('Error uploading and resizing image:', error);
+    res.status(500).send({ message: 'Internal Server Error' });
+  }
+}
 
 // Delete a photo from the server
 export const deletePhoto = async (req: FastifyRequest<{ Params: { photoID: number, TYPE: string, photoName: string } }>, res: FastifyReply) => {

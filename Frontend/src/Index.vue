@@ -18,7 +18,8 @@
             <tr v-for="product in products" :key="product.id">
               <td>{{ product.id }}</td>
               <td>{{ product.name }}</td>
-              <td><img :src="product.picture" :alt="product.name" height="50" /></td>
+              <td><img :src="`${apiURL}/foto/uploads/product/${product.id}/${product.picture}`" :alt="product.picture"
+                  height="50" /></td>
               <td>{{ formatDateTime(product.created_at) }}</td>
               <td>
                 <i class="fas fa-edit me-4 fa-lg" style="color: #0B5ED7" @click="editProduct(product)"></i>
@@ -93,6 +94,13 @@ const deleteProduct = (product) => {
   axios
     .delete(`${apiURL}/products/${product.id}`)
     .then((res) => {
+      axios
+        .delete(`${apiURL}/foto/deleteFolder/product/${product.id}`)
+        .then(res => console.log("photo_folder DELETED: ", res))
+        .catch(err => {
+          console.log("photo_folder ERROR: ", err)
+        })
+
       products.value = products.value.filter((p) => p.id !== parseInt(product.id));
       console.log(res);
     })
@@ -103,6 +111,10 @@ const deleteProduct = (product) => {
 </script>
 
 <style>
+.card {
+  margin-top: 24px;
+}
+
 .card-title {
   font-size: 24px;
   margin-bottom: 20px;
