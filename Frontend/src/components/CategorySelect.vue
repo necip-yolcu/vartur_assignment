@@ -23,8 +23,8 @@
 <script setup>
 import { ref, computed, onMounted, watch, defineProps, defineEmits, nextTick } from 'vue';
 import axios from 'axios';
+import { apiURL } from '@/config'
 
-const apiURL = 'http://localhost:8080';
 
 const props = defineProps({
     categories: Array,

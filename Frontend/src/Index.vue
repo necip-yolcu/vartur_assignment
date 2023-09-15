@@ -1,5 +1,31 @@
 <template>
   <div class="container">
+
+    <div class="card">
+      <div class="card-body">
+        <h1 class="card-title mb-4">Category List</h1>
+        <button class="btn btn-primary mb-4" @click="goToCategoryFormPage"> <i class="fas fa-plus"></i> Add
+          Category</button>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Picture</th>
+              <th>Parent ID</th>
+              <th>Created At</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <table-row-cat v-for="category in categories" :categories="categories" :category="category" :key="category.id"
+              :level="1" @deleteCategory="handleDeleteCategory" />
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-body">
         <h1 class="card-title mb-4">Product List</h1>
@@ -10,6 +36,7 @@
               <th>ID</th>
               <th>Name</th>
               <th>Picture</th>
+              <th>Category ID</th>
               <th>Created At</th>
               <th>Action</th>
             </tr>
@@ -18,8 +45,9 @@
             <tr v-for="product in products" :key="product.id">
               <td>{{ product.id }}</td>
               <td>{{ product.name }}</td>
-              <td><img :src="`${apiURL}/foto/uploads/product/${product.id}/${product.picture}`" :alt="product.picture"
+              <td><img :src="`${apiURL}/foto/uploads/products/${product.id}/${product.picture}`" :alt="product.picture"
                   height="50" /></td>
+              <td>{{ product.category_id }}</td>
               <td>{{ formatDateTime(product.created_at) }}</td>
               <td>
                 <i class="fas fa-edit me-4 fa-lg" style="color: #0B5ED7" @click="editProduct(product)"></i>
@@ -30,6 +58,7 @@
         </table>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -37,16 +66,29 @@
 import axios from 'axios';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router'
+import { apiURL } from '@/config'
+import TableRowCat from './components/TableRowCat.vue'
+
 
 const router = useRouter()
 
-const apiURL = 'http://localhost:8080';
-
 const products = ref([]);
-const toastCount = ref(0);
+const categories = ref([]);
 
 const goToFormPage = () => {
-  router.push('/form');
+  //router.push('/product');
+  router.push({
+    path: '/product',
+    query: { type:"products" }, // Pass the product object as query parameters
+  });
+};
+
+const goToCategoryFormPage = () => {
+  //router.push('/category');
+  router.push({
+    path: '/category',
+    query: { type:"categories" }, // Pass the product object as query parameters
+  });
 };
 
 const fetchProducts = () => {
@@ -60,8 +102,22 @@ const fetchProducts = () => {
     });
 };
 
-onMounted(() => {
+const fetchCategories = () => {
+  axios
+    .get(`${apiURL}/categories`)
+    .then((response) => {
+      categories.value = response.data;
+      initializeData(response.data);
+
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+};
+
+onMounted(async () => {
   fetchProducts()
+  await fetchCategories()
 })
 
 const confirmDelete = (product) => {
@@ -82,10 +138,10 @@ const formatDateTime = (dateTimeString) => {
 };
 
 const editProduct = (product) => {
-  console.log("edit", product);
+  console.log("edit_P", product);
   router.push({
-    path: '/form',
-    query: { ...product, editMode: true }, // Pass the product object as query parameters
+    path: '/product',
+    query: { ...product, editMode: true, type:"products" }, // Pass the product object as query parameters
   });
 };
 
@@ -95,7 +151,7 @@ const deleteProduct = (product) => {
     .delete(`${apiURL}/products/${product.id}`)
     .then((res) => {
       axios
-        .delete(`${apiURL}/foto/deleteFolder/product/${product.id}`)
+        .delete(`${apiURL}/foto/deleteFolder/products/${product.id}`)
         .then(res => console.log("photo_folder DELETED: ", res))
         .catch(err => {
           console.log("photo_folder ERROR: ", err)
@@ -108,11 +164,30 @@ const deleteProduct = (product) => {
       console.error('Error:', error);
     });
 };
+
+const handleDeleteCategory = (categoryToDelete) => {
+  // Filter the categories to remove the categoryToDelete
+  axios
+    .delete(`${apiURL}/categories/${categoryToDelete.id}`)
+    .then((res) => {
+      axios
+        .delete(`${apiURL}/foto/deleteFolder/categories/${categoryToDelete.id}`)
+        .then(res => console.log("photo_folder DELETED: ", res))
+        .catch(err => {
+          console.log("photo_folder ERROR: ", err)
+        })
+      categories.value = categories.value.filter((category) => category.id !== categoryToDelete.id);
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+};
+
 </script>
 
 <style>
 .card {
-  margin-top: 24px;
+  margin: 24px 0;
 }
 
 .card-title {
@@ -125,5 +200,11 @@ const deleteProduct = (product) => {
   /* Other button styles */
   margin-right: 10px;
   /* Adjust the value to increase or decrease the spacing */
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid #ccc;
 }
 </style>

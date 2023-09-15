@@ -1,15 +1,14 @@
 <template>
     <div class="container">
-
         <div class="card">
+
             <div class="card-body">
                 <h1 class="card-title mb-4">{{ formTitle }}</h1>
                 <form @submit.prevent="submitForm" enctype="multipart/form-data">
 
                     <div class="mb-3">
                         <label for="name" class="form-label">Name:</label>
-                        <input type="text" id="name" placeholder="Name:" class="form-control" v-model="product.name"
-                            required>
+                        <input type="text" id="name" placeholder="Name:" class="form-control" v-model="item.name" required>
                     </div>
 
                     <!-- Select boxes for categories -->
@@ -19,18 +18,14 @@
                         <category-select id="category_id" :categories="mainCategories" :level="0" :mode="true"
                             :selectedCat="router.currentRoute.value.query.category_id" :categorywithParent="allParentCatId"
                             :editMode="router.currentRoute.value.query.editMode"
-                            @selectedCategoryChanged="handleSelectedCategoryChanged" v-model="product.category_id">
+                            @selectedCategoryChanged="handleSelectedCategoryChanged" v-model="item.category_id">
                         </category-select>
                     </div>
 
                     <div class="mb-3">
                         <label for="picture" class="form-label">Picture:</label>
-                        <!-- <div class="form-group">
-                            <input type="file" class="form-control" name="uploaded_file" @change="handleFileInput"
-                                accept="image/*" ref="fileInput">
-                        </div> -->
                         <div class="image-input">
-                            <img :src="imagePreview" :alt="product.picture" height="50" />
+                            <img :src="imagePreview" :alt="item.picture" height="50" />
                             <input type="file" class="form-control" @change="handleFileInput">
                         </div>
                     </div>
@@ -49,11 +44,9 @@
                             </button>
                         </div>
                     </div>
-
                 </form>
             </div>
         </div>
-
     </div>
 </template>
 
@@ -62,14 +55,14 @@ import axios from 'axios';
 import CategorySelect from './components/CategorySelect.vue';
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router'
+import { apiURL } from '@/config'
+
 const router = useRouter()
 
-
-const apiURL = 'http://localhost:8080';
-
-const formTitle = ref('Add Product');
+const formTitle = ref('Add Category/Product');
 const formSubmitButtonText = ref('Add');
-const product = ref({
+const item = ref({
+    parent_id: '',
     category_id: '',
     name: '',
     picture: null,
@@ -82,12 +75,15 @@ const fileInput = ref(null);
 const categories = ref();
 const categorywithParent = ref([]);
 
-
+const editModeProp = computed(() => router.currentRoute.value.query.editMode);
+const typeProp = computed(() => router.currentRoute.value.query.type);
+console.log("typeProp", router.currentRoute.value.query.type)
 onMounted(async () => {
+    console.log("edddddddtt",router.currentRoute.value.query.editMode)
     if (router.currentRoute.value.query.editMode) {
-        formTitle.value = 'Edit Product';
+        formTitle.value = `Edit ${router.currentRoute.value.query.type === "categories" ? 'Category' : 'Product'}`;
         formSubmitButtonText.value = 'Update';
-        updateProductFromQuery();
+        updateItemFromQuery();
     }
     await getCategories()
     await getParentIDs()
@@ -96,9 +92,10 @@ onMounted(async () => {
 const mainCategories = computed(() => categories.value?.filter(category => !category.parent_id));
 const allParentCatId = computed(() => categorywithParent.value?.filter(category => category));
 
-const updateProductFromQuery = () => {
-    product.value = {
+const updateItemFromQuery = () => {
+    item.value = {
         id: parseInt(router.currentRoute.value.query.id?.toString()),
+        parent_id: parseInt(router.currentRoute.value.query.parent_id?.toString()),
         category_id: parseInt(router.currentRoute.value.query.category_id?.toString()),
         name: router.currentRoute.value.query.name,
         picture: router.currentRoute.value.query.picture,
@@ -107,20 +104,19 @@ const updateProductFromQuery = () => {
 };
 
 const imagePreview = ref(router.currentRoute.value.query.picture
-    ? `${apiURL}/foto/uploads/product/${parseInt(router.currentRoute.value.query.id?.toString())}/${router.currentRoute.value.query.picture}`
+    ? `${apiURL}/foto/uploads/${router.currentRoute.value.query.type}/${parseInt(router.currentRoute.value.query.id?.toString())}/${router.currentRoute.value.query.picture}`
     : null
 )
 
-
 const handleSelectedCategoryChanged = (selectedCategoryId) => {
-    product.value.category_id = selectedCategoryId;
+    item.value[router.currentRoute.value.query.type === "categories" ? 'parent_id' : 'category_id'] = selectedCategoryId;
 }
 
 const submitForm = () => {
     if (formSubmitButtonText.value === 'Add') {
-        addProduct(product.value.category_id);
+        addItem(item.value[router.currentRoute.value.query.type === "categories" ? 'parent_id' : 'category_id']);
     } else {
-        updateProduct(product.value.category_id);
+        updateItem(item.value[router.currentRoute.value.query.type === "categories" ? 'parent_id' : 'category_id']);
     }
 };
 
@@ -131,15 +127,15 @@ const getCategories = () => {
             categories.value = res.data
         })
         .catch((err) => {
-            console.error('Error updating product:', err);
+            console.error('Error updating item:', err);
         });
 };
 
 const getParentIDs = () => {
     axios
-        .get(`${apiURL}/categories/parent/${product.value?.category_id}`)
+        .get(`${apiURL}/categories/parent/${item.value[router.currentRoute.value.query.type === "categories" ? 'parent_id' : 'category_id']}`)
         .then(res => {
-            categorywithParent.value = [product.value?.category_id, ...res.data].reverse()
+            categorywithParent.value = [item.value[router.currentRoute.value.query.type === "categories" ? 'parent_id' : 'category_id'], ...res.data].reverse()
         }).catch((err) => {
             console.error('cat_parent Error getting category:', err);
         });
@@ -156,42 +152,55 @@ const handleFileInput = async (event) => {
         };
         reader.readAsDataURL(file);
 
-        product.value.picture = file.name
+        item.value.picture = file.name
         formData.value.append('uploaded_file', file)
     }
 };
 
-const addProduct = (selectedCategoryId) => {
+const addItem = (selectedCategoryId) => {
+    console.log("selectedCategoryId", selectedCategoryId, router.currentRoute.value.query.type)
     axios
-        .post(`${apiURL}/products`, {
-            category_id: parseInt(selectedCategoryId),
-            name: product.value.name,
-            picture: product.value?.picture,
-        })
+        .post(`${apiURL}/${router.currentRoute.value.query.type}`,
+            router.currentRoute.value.query.type === "categories" ? {
+                parent_id: parseInt(selectedCategoryId),
+                name: item.value.name,
+                picture: item.value?.picture,
+            } : {
+                category_id: parseInt(selectedCategoryId),
+                name: item.value.name,
+                picture: item.value?.picture,
+            }
+        )
         .then(async (res) => {
-            await fotoUpload({ todo: "addFoto", TYPE: 'product', id: res.data.id })
-            console.log('Product added:', res.data);
+            await fotoUpload({ todo: "addFoto", TYPE: router.currentRoute.value.query.type, id: res.data.id })
+            console.log('Item added:', res.data);
             resetForm();
         })
         .catch((err) => {
-            console.error('Error adding product:', err);
+            console.error('Error adding item:', err);
         });
 };
 
-const updateProduct = (updatedCategoryId) => {
+const updateItem = (updatedCategoryId) => {
     axios
-        .put(`${apiURL}/products/${product.value.id}`, {
-            category_id: parseInt(updatedCategoryId),
-            name: product.value.name,
-            picture: product.value.picture,
-        })
+        .put(`${apiURL}/${router.currentRoute.value.query.type}/${parseInt(router.currentRoute.value.query.id?.toString())}`,
+            router.currentRoute.value.query.type === "categories" ? {
+                parent_id: parseInt(updatedCategoryId),
+                name: item.value.name,
+                picture: item.value.picture,
+            } : {
+                category_id: parseInt(updatedCategoryId),
+                name: item.value.name,
+                picture: item.value.picture,
+            }
+        )
         .then(async (res) => {
-            await fotoUpload({ todo: "updateFoto", TYPE: 'product', id: product.value.id })
-            console.log('Product updated:', res.data);
+            await fotoUpload({ todo: "updateFoto", TYPE: router.currentRoute.value.query.type, id: parseInt(router.currentRoute.value.query.id?.toString()) })
+            console.log('Item updated:', res.data);
             resetForm()
         })
         .catch((err) => {
-            console.error('Error updating product:', err);
+            console.error('Error updating item:', err);
         });
 };
 
@@ -207,7 +216,8 @@ const fotoUpload = async ({ todo, TYPE, id }) => {
 }
 
 const resetForm = () => {
-    product.value = {
+    item.value = {
+        parent_id: '',
         category_id: '',
         name: '',
         picture: null,
@@ -218,13 +228,12 @@ const resetForm = () => {
     });
 };
 
-
 watch(() => router.currentRoute.value.query, () => {
-    updateProductFromQuery();
+    updateItemFromQuery();
 });
 
 </script>
-  
+
 <style scoped>
 .container {
     max-width: 500px;
@@ -274,4 +283,3 @@ watch(() => router.currentRoute.value.query, () => {
     color: #6c757d;
 }
 </style>
-  

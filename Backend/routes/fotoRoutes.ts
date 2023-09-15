@@ -2,11 +2,9 @@ import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import {
   resizePhoto,
   getPhotos,
-  deletePhoto,
   deleteFolder
 } from '../controllers/fotoController';
-import fieldsUpload from '../controllers/upload';
-import sharp from 'sharp';
+import fotoUpload from '../controllers/fotoController';
 
 
 const fotoRoutes = (fastify: FastifyInstance, options: any, done: () => void) => {
@@ -14,7 +12,7 @@ const fotoRoutes = (fastify: FastifyInstance, options: any, done: () => void) =>
   fastify.post<{ Params: { TYPE: string; photoID: number } }>
     (
       '/addFoto/:TYPE/:photoID',
-      { preHandler: fieldsUpload },
+      { preHandler: fotoUpload },
       resizePhoto
     );
 
@@ -22,17 +20,13 @@ const fotoRoutes = (fastify: FastifyInstance, options: any, done: () => void) =>
   fastify.post<{ Params: { TYPE: string; photoID: number } }>
     (
       '/updateFoto/:TYPE/:photoID',
-      { preHandler: fieldsUpload },
+      { preHandler: fotoUpload },
       resizePhoto
     );
 
   // Get fotos
   fastify.get<{ Params: { TYPE: string; photoID: number; photoName: string } }>
     ('/uploads/:TYPE/:photoID/:photoName', getPhotos);
-
-  // Delete foto
-  fastify.delete<{ Params: { TYPE: string; photoID: number; photoName: string }; }>
-    ('/deleteFoto/:TYPE/:photoID/:photoName', deletePhoto);
 
   // Delete folder
   fastify.delete<{ Params: { TYPE: string; photoID: number } }>

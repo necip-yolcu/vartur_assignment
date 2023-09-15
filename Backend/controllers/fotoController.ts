@@ -1,13 +1,56 @@
-import fastify, { FastifyRequest, FastifyReply } from 'fastify';
-import fs from 'fs-extra';
+import { FastifyRequest, FastifyReply } from 'fastify';
 import multer from 'fastify-multer';
-//import multer from 'multer'
 import sharp from 'sharp';
+import fs from 'fs-extra';
 import path from 'path';
-import fastifyStatic from '@fastify/static';
-import fastifyMultipart from '@fastify/multipart'
 
-// PHOTO CONTROLLER
+const myStorage = multer.diskStorage({
+  destination: async (req: any, file: any, callback: (arg0: null, arg1: string) => void) => {
+      const { TYPE, photoID } = req.params
+      const folderPath = `./uploads/${TYPE}/${photoID}`;
+
+      if (await fs.pathExists(folderPath)) {
+          fs.readdir(folderPath, async (err, files) => {
+              if (err) {
+                  console.error('Error reading directory:', err);
+              } else {
+                  if (files.length > 0) { // Check if there are any files in the folder
+                      await fs.remove(folderPath)
+                          .then(() => {   //'The folder has been removed.'
+                              fs.mkdirs(`./uploads/${TYPE}/${photoID}`, function (err: any) {
+                                  if (err)
+                                      return console.error(err);
+                                  callback(null, `./uploads/${TYPE}/${photoID}`);
+                              });
+                          })
+                          .catch((err: any) => {
+                              if (err && err.code == 'ENOENT') {
+                                  //res.send({ message: 'The folder does not exist, so it cannot be removed.' });
+                              } else if (err) {
+                                  //res.send({ message: 'An error occurred while attempting to remove the folder.' });
+                              }
+                          });
+                  } else {    //'The folder is empty.'
+                      callback(null, folderPath);
+                  }
+              }
+          });
+      } else
+          fs.mkdirs(folderPath, function (err: any) {
+              if (err)
+                  return console.error(err);
+              callback(null, `./uploads/${TYPE}/${photoID}`);
+          });
+  },
+  filename: (req: any, file: { originalname: WithImplicitCoercion<string> | { [Symbol.toPrimitive](hint: "string"): string; }; }, callback: (arg0: null, arg1: any) => void) => {
+      file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+      callback(null, file.originalname);
+  },
+});
+
+const fotoUpload = multer({ storage: myStorage }).single('uploaded_file')
+
+export default fotoUpload;
 
 // Get photos from the server
 export const getPhotos = async (req: FastifyRequest<{ Params: { photoID: number, TYPE: string, photoName: string } }>, res: FastifyReply) => {
@@ -50,27 +93,6 @@ export const resizePhoto = async (req: FastifyRequest<{ Params: { photoID: numbe
     res.status(500).send({ message: 'Internal Server Error' });
   }
 }
-
-// Delete a photo from the server
-export const deletePhoto = async (req: FastifyRequest<{ Params: { photoID: number, TYPE: string, photoName: string } }>, res: FastifyReply) => {
-  const type = req.params.TYPE;
-  const photoId = req.params.photoID;
-  const photoName = req.params.photoName;
-
-  try {
-    fs.remove(`./uploads/${type}/${photoId}/${photoName}`, (err: any) => {
-      if (err && err.code == 'ENOENT') {
-        res.send('The file does not exist, so it cannot be removed.');
-      } else if (err) {
-        res.send('An error occurred while attempting to remove the file.');
-      } else {
-        res.send('The file has been removed.');
-      }
-    });
-  } catch (error: any) {
-    return res.send('Failed to delete the photo');
-  }
-};
 
 // Delete a folder from the server (possibly can be combined with the above function)
 export const deleteFolder = async (req: FastifyRequest<{ Params: { photoID: number, TYPE: string } }>, res: FastifyReply) => {

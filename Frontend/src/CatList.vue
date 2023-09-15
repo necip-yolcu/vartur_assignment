@@ -44,10 +44,10 @@
 import axios from 'axios';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { apiURL } from '@/config'
+
 
 const router = useRouter();
-
-const apiURL = 'http://localhost:8080';
 
 const categories = ref([]);
 const toastCount = ref(0);

@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Form from './Form.vue';
+import FormProduct from './FormProduct.vue';
+import FormCategory from './FormCategory.vue';
+import FormItem from './FormItem.vue';
 import Index from './Index.vue';
 
 const routes = [
@@ -9,10 +11,21 @@ const routes = [
         component: Index,
     },
     {
-        path: '/form',
-        name: 'Form',
-        component: Form,
+        path: '/product',
+        name: 'FormProduct',
+        component: FormItem,
+        props: {
+            formType: "products"
+        }
     },
+    {
+        path: '/category',
+        name: 'FormCategory',
+        component: FormItem,
+        props: {
+            formType: "categories"
+        }
+    }
 ];
 
 const router = createRouter({

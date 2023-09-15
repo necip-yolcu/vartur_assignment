@@ -4,6 +4,7 @@ import categoryRoutes from './routes/categoriesRoutes'
 import productRoutes from './routes/productsRoutes';
 import fotoRoutes from './routes/fotoRoutes';
 import multer from 'fastify-multer';
+import fastifyMultipart from '@fastify/multipart' //?
 
 
 const server = Fastify({ logger: true })
