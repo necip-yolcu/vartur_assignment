@@ -4,7 +4,7 @@
         <td @click="toggleDescendantsVisibility(category)"
             :class="{ parent: category.children && category.children.length > 0 }">
             <span :style="{ marginLeft: (level - 1) * 20 + 'px' }">
-                {{ '-'.repeat(level - 1) }} {{ category.name }}
+                {{ '-'.repeat(level - 1) }} {{ category.name }} - ({{ category.productCount }})
             </span>
         </td>
         <td>
@@ -23,7 +23,7 @@
 </template>
   
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { apiURL } from '@/config'
@@ -57,50 +57,13 @@ const formatDateTime = (dateTimeString) => {
 };
 
 const editCategory = (category) => {
-    console.log("edit_C", category);
     router.push({
         path: '/category',
-        query: { ...category, editMode: true, type:"categories" }, // Pass the product object as query parameters
+        query: { ...category, editMode: true, type: "categories" }, // Pass the product object as query parameters
     });
 };
 
 const toggleDescendantsVisibility = (parent) => {
-    //1
-    /*parent.expanded = !parent.expanded;
-
-     if (parent.children && parent.children.length > 0) {
-        parent.children.forEach((child) => {
-            child.hidden = !parent.expanded;
-        });
-    } */
-
-    //2
-    /* parent.expanded = !parent.expanded;
-    // Recursive function to toggle visibility of all descendants
-    const toggleAllDescendants = (node) => {
-        if (node.children && node.children.length > 0) {
-            node.children.forEach((child) => {
-                child.hidden = !node.expanded;
-                toggleAllDescendants(child); // Recursively toggle children
-            });
-        }
-    }; 
-    toggleAllDescendants(parent);
-    */
-
-    //3
-    /* const toggleAllDescendants = (node, hide) => {
-        if (node.children && node.children.length > 0) {
-            node.children.forEach((child) => {
-                child.hidden = hide;
-                toggleAllDescendants(child, hide); // Recursively toggle children
-            });
-        }
-    };
-    parent.expanded = !parent.expanded;
-    toggleAllDescendants(parent, !parent.expanded); */
-
-    //4
     const toggleAllDescendants = (node, hide) => {
         if (node.children && node.children.length > 0) {
             node.children.forEach((child) => {
@@ -125,7 +88,8 @@ const toggleDescendantsVisibility = (parent) => {
     }
 
     parent.expanded = !parent.expanded;
-
 };
+
+
 </script>
   

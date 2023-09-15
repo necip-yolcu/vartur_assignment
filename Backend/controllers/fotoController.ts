@@ -82,8 +82,6 @@ export const resizePhoto = async (req: FastifyRequest<{ Params: { photoID: numbe
       .resize(3200, 3200) // Resize to 3200x3200 pixels
       .toBuffer();
 
-    console.log("resizedImageBuffer",resizedImageBuffer)
-
     // Overwrite the original image with the resized version
     await sharp(resizedImageBuffer).toFile(filePath);
 

@@ -79,7 +79,7 @@ const goToFormPage = () => {
   //router.push('/product');
   router.push({
     path: '/product',
-    query: { type:"products" }, // Pass the product object as query parameters
+    query: { type: "products" }, // Pass the product object as query parameters
   });
 };
 
@@ -87,7 +87,7 @@ const goToCategoryFormPage = () => {
   //router.push('/category');
   router.push({
     path: '/category',
-    query: { type:"categories" }, // Pass the product object as query parameters
+    query: { type: "categories" }, // Pass the product object as query parameters
   });
 };
 
@@ -106,9 +106,12 @@ const fetchCategories = () => {
   axios
     .get(`${apiURL}/categories`)
     .then((response) => {
+      
       categories.value = response.data;
-      initializeData(response.data);
-
+      for (const category of response.data) {
+        calculateProductCount(category);
+        updateParentProductCount(category);
+      }
     })
     .catch((error) => {
       console.log(error);
@@ -116,7 +119,7 @@ const fetchCategories = () => {
 };
 
 onMounted(async () => {
-  fetchProducts()
+  await fetchProducts()
   await fetchCategories()
 })
 
@@ -138,15 +141,13 @@ const formatDateTime = (dateTimeString) => {
 };
 
 const editProduct = (product) => {
-  console.log("edit_P", product);
   router.push({
     path: '/product',
-    query: { ...product, editMode: true, type:"products" }, // Pass the product object as query parameters
+    query: { ...product, editMode: true, type: "products" }, // Pass the product object as query parameters
   });
 };
 
 const deleteProduct = (product) => {
-  console.log("deleteID", product.id);
   axios
     .delete(`${apiURL}/products/${product.id}`)
     .then((res) => {
@@ -158,7 +159,6 @@ const deleteProduct = (product) => {
         })
 
       products.value = products.value.filter((p) => p.id !== parseInt(product.id));
-      console.log(res);
     })
     .catch((error) => {
       console.error('Error:', error);
@@ -181,6 +181,26 @@ const handleDeleteCategory = (categoryToDelete) => {
     .catch((error) => {
       console.error('Error:', error);
     });
+};
+
+
+const calculateProductCount = (category) => {
+  let productCount = category.products.length;
+  for (const child of category.children) {
+    productCount += calculateProductCount(child);
+  }
+  category.productCount = productCount; // Set productCount for this category
+  return productCount;
+};
+
+const updateParentProductCount = (category) => {
+  if (category.parent_id !== null) {
+    const parentCategory = myData.find((c) => c.id === category.parent_id);
+    if (parentCategory) {
+      parentCategory.productCount += category.productCount;
+      updateParentProductCount(parentCategory); // Recursively update parent categories
+    }
+  }
 };
 
 </script>

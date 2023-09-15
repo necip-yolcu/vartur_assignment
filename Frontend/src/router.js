@@ -1,6 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import FormProduct from './FormProduct.vue';
-import FormCategory from './FormCategory.vue';
 import FormItem from './FormItem.vue';
 import Index from './Index.vue';
 

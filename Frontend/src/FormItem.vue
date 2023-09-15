@@ -75,11 +75,7 @@ const fileInput = ref(null);
 const categories = ref();
 const categorywithParent = ref([]);
 
-const editModeProp = computed(() => router.currentRoute.value.query.editMode);
-const typeProp = computed(() => router.currentRoute.value.query.type);
-console.log("typeProp", router.currentRoute.value.query.type)
 onMounted(async () => {
-    console.log("edddddddtt",router.currentRoute.value.query.editMode)
     if (router.currentRoute.value.query.editMode) {
         formTitle.value = `Edit ${router.currentRoute.value.query.type === "categories" ? 'Category' : 'Product'}`;
         formSubmitButtonText.value = 'Update';
@@ -143,7 +139,6 @@ const getParentIDs = () => {
 
 const handleFileInput = async (event) => {
     const file = event.target.files[0];
-    console.log("photo_file: ", file)
 
     if (file) {
         const reader = new FileReader();
@@ -158,7 +153,6 @@ const handleFileInput = async (event) => {
 };
 
 const addItem = (selectedCategoryId) => {
-    console.log("selectedCategoryId", selectedCategoryId, router.currentRoute.value.query.type)
     axios
         .post(`${apiURL}/${router.currentRoute.value.query.type}`,
             router.currentRoute.value.query.type === "categories" ? {

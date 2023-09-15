@@ -11,7 +11,6 @@ interface ProductCreateData {
 
 export const createProduct = async (request: FastifyRequest, reply: FastifyReply) => {
   try {
-    console.log("urunler:",request.body)
     const newProduct = await prisma.product.create({
       data: request.body as ProductCreateData,
     });
