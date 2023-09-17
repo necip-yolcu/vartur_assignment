@@ -1,3 +1,12 @@
+TO RUN THE PROJECT IN LOCAL
+    - npm run dev (frontend)
+    - npm run start (backend)
+    - sudo docker run --name=vartur_mysql -e MYSQL_ROOT_PASSWORD=admin -d mysql:latest (docker)
+
+
+
+WHAT HAVE DONE;
+BACKEND
 - create a folder named: 
     vartur_assignment
 - open it with vscode
@@ -32,7 +41,7 @@
 - run MySQL in Docker:
     sudo docker pull mysql:latest
 - run a MySQL container 
-    sudo docker run --name=vartur_mysql -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql:latest
+    sudo docker run --name=vartur_mysql -e MYSQL_ROOT_PASSWORD=admin -d mysql:latest
 - verify that the MySQL container is running
     sudo docker ps
 - after that, i granted all privileges to my user
@@ -46,4 +55,33 @@
 - create db migration
     prisma migrate dev --name init
 
+- create routes directory for category & product & photo routes to comminucate with frontend easily
+- create controllers directory for category & product & photo
+- create uploads directory folder for photos created by MULTER (also resize by SHARP in Backend)
 
+FRONTEND
+- create a frontend directory and install vue
+    npm create vue@latest (then selecting necessary options)
+    npm install
+    npm run dev
+- 3 pages created via vue-router(Even though there's a 3 pages, I combined Product & Category into FormItem.vue): 
+    1.Index
+        mainpage
+        list of products & categories
+    2.FormProduct
+        page for adding and editing product
+    3.FormCategory
+        page for adding and editing category
+- 2 components
+    CategorySelect.vue
+        select box for showing nested categories
+    TableRowCat
+        category list in the mainpage
+
+
+
+
+POSTMAN API
+    - https://api.postman.com/collections/21517592-9593aa1c-4c38-4a71-9e98-92d054075b7f?access_key=PMAT-01HAH0B0TC8S45H7S7J5BVBA5P
+
+    - https://elements.getpostman.com/redirect?entityId=21517592-9593aa1c-4c38-4a71-9e98-92d054075b7f&entityType=collection
