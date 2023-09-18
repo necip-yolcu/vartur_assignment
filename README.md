@@ -1,6 +1,14 @@
 https://github.com/necip-yolcu/vartur_assignment/assets/43618473/bebf71a2-6b83-4be9-998e-8708799591cf
 
 
+POSTMAN API
+
+    - https://api.postman.com/collections/21517592-9593aa1c-4c38-4a71-9e98-92d054075b7f?access_key=PMAT-01HAH0B0TC8S45H7S7J5BVBA5P
+
+    - https://elements.getpostman.com/redirect?entityId=21517592-9593aa1c-4c38-4a71-9e98-92d054075b7f&entityType=collection
+
+
+
 TO RUN THE PROJECT IN LOCAL
 
     - npm run dev (frontend)
@@ -82,10 +90,3 @@ FRONTEND
     TableRowCat
         category list in the mainpage
 
-
-
-
-POSTMAN API
-    - https://api.postman.com/collections/21517592-9593aa1c-4c38-4a71-9e98-92d054075b7f?access_key=PMAT-01HAH0B0TC8S45H7S7J5BVBA5P
-
-    - https://elements.getpostman.com/redirect?entityId=21517592-9593aa1c-4c38-4a71-9e98-92d054075b7f&entityType=collection
