@@ -1,3 +1,6 @@
+https://github.com/necip-yolcu/vartur_assignment/assets/43618473/bebf71a2-6b83-4be9-998e-8708799591cf
+
+
 TO RUN THE PROJECT IN LOCAL
     - npm run dev (frontend)
     - npm run start (backend)
