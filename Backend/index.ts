@@ -21,7 +21,7 @@ server.register(productRoutes, { prefix: '/products' })
 server.register(multer.contentParser)
 server.register(fotoRoutes, { prefix: '/foto' })
 
-server.listen({ port: 8080 }, (err, address) => {
+server.listen({port:8080}, (err, address) => {
   if (err) {
     console.error(err);
     process.exit(1);

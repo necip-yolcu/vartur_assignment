@@ -1,0 +1,13 @@
+version: '3'
+services:
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_USER: necip
+      MYSQL_DB: vartur_db
+  app:
+    image: my-node-app
+    ports:
+      - 13000:8080
